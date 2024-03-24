@@ -23,7 +23,19 @@ export const compareCatsArrays = (array1, array2, array3) => {
 };
 
 export const checkIfArrayIsUnique = (string1, string2) => {
-    return string1 !== string2;
+    const arr1 = string1.split("");
+    const arr2 = string2.split("");
+
+    arr1.sort();
+    arr2.sort();
+
+    for (let i = 0; i < 3; i++) {
+        if (arr1[i] !== arr2[i]) {
+            return true;
+        }
+    }
+
+    return false;
 };
 
 const array1 = Array.from({ length: 3 }, () => []);
