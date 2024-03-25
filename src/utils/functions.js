@@ -4,6 +4,7 @@ export const compareCatsArrays = (array1, array2, array3) => {
     }
     let valid = false;
     let validString = "";
+    let catIds = [];
 
     for (let i = 0; i < 4; i++) {
         const char1 = array1[i];
@@ -15,27 +16,36 @@ export const compareCatsArrays = (array1, array2, array3) => {
             (char1 !== char2 && char2 !== char3 && char1 !== char3)
         ) {
             validString = `${char1}${char2}${char3}`;
+            catIds = [array1, array2, array3];
             valid = true;
             break;
         }
     }
-    return { valid, validString };
+    return { valid, validString, catIds };
 };
 
-export const checkIfArrayIsUnique = (string1, string2) => {
-    const arr1 = string1.split("");
-    const arr2 = string2.split("");
+export const checkIfCatsAreUnique = (array1, array2) => {
+    if (array1.length !== 3 || array2.length !== 3) {
+        throw new Error("Arrays must contain three elements each");
+    }
 
-    arr1.sort();
-    arr2.sort();
+    let allCatIdsFound = true;
 
-    for (let i = 0; i < 3; i++) {
-        if (arr1[i] !== arr2[i]) {
-            return true;
+    for (let i = 0; i < array1.length; i++) {
+        let found = false;
+        for (let j = 0; j < array2.length; j++) {
+            if (array1[i] === array2[j]) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            allCatIdsFound = false;
+            break;
         }
     }
 
-    return false;
+    return !allCatIdsFound;
 };
 
 const array1 = Array.from({ length: 3 }, () => []);
