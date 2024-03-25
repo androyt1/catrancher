@@ -12,7 +12,7 @@ import {
     array3,
     array4,
     compareCatsArrays,
-    checkIfArrayIsUnique,
+    checkIfCatsAreUnique,
 } from "./utils/functions";
 
 const App = () => {
@@ -24,6 +24,10 @@ const App = () => {
     const levelTwoRef = useRef([]);
     const levelThreeRef = useRef([]);
     const levelFourRef = useRef([]);
+    const levelOneValidCatsArrayRef = useRef([]);
+    const levelTwoValidCatsArrayRef = useRef([]);
+    const levelThreeValidCatsArrayRef = useRef([]);
+    const levelFourValidCatsArrayRef = useRef([]);
     const [stageOneCleared, setStageOneCleared] = useState(false);
     const [stageTwoCleared, setStageTwoCleared] = useState(false);
     const [stageThreeCleared, setStageThreeCleared] = useState(false);
@@ -31,7 +35,6 @@ const App = () => {
     const catRefs = useRef([]);
     const [selected, setSelected] = useState([]);
     const stageRef = useRef(1);
-    const [validStrings, setValidStrings] = useState([]);
 
     useEffect(() => {
         const data = localStorage.getItem("cats");
@@ -53,22 +56,25 @@ const App = () => {
         }
     };
     const stage1 = () => {
-        console.log("stage 1");
-
         const { valid, validString } = compareCatsArrays(
-            catRefs.current[0]?.id.split(""),
-            catRefs.current[1]?.id.split(""),
-            catRefs.current[2]?.id.split("")
+            catRefs.current[0]?.id,
+            catRefs.current[1]?.id,
+            catRefs.current[2]?.id
         );
+
         if (valid) {
             levelOneRef.current = catRefs.current;
             setStageOneCleared(true);
             stageRef.current = 2;
             resetCatList();
-            console.log("valid match found", validString);
-            const newValidString = [validString];
-            setValidStrings(newValidString);
-            console.log("valid strings array", newValidString);
+            console.log("level 1 valid", valid);
+            console.log("valid strings", validString);
+            levelOneValidCatsArrayRef.current = [
+                levelOneRef.current[0]?.id,
+                levelOneRef.current[1]?.id,
+                levelOneRef.current[2]?.id,
+            ];
+            console.log("level one valid cats", levelOneValidCatsArrayRef.current);
         }
         handleFailedAttempt(valid);
     };
@@ -80,14 +86,28 @@ const App = () => {
             catRefs.current[2]?.id.split("")
         );
         if (valid) {
-            const result = checkIfArrayIsUnique(validString, validStrings[0]);
+            console.log("level 2 valid", valid);
+            console.log("valid string", validString);
+
+            const result = checkIfCatsAreUnique(levelOneValidCatsArrayRef.current, [
+                catRefs.current[0]?.id,
+                catRefs.current[1]?.id,
+                catRefs.current[2]?.id,
+            ]);
             if (result) {
-                levelTwoRef.current = [catRefs.current[0], catRefs.current[1], catRefs.current[2]];
+                levelTwoValidCatsArrayRef.current = [
+                    catRefs.current[0],
+                    catRefs.current[1],
+                    catRefs.current[2],
+                ];
+                levelTwoRef.current = [
+                    catRefs.current[0]?.id,
+                    catRefs.current[1].id,
+                    catRefs.current[2].id,
+                ];
+                console.log("level two ref", levelTwoRef.current);
                 setStageTwoCleared(true);
                 stageRef.current = 3;
-                const newValidStrings = [...validStrings, validString];
-                setValidStrings(newValidStrings);
-                console.log("valid strings array", newValidStrings);
                 resetCatList();
             } else {
                 console.log("You cannot repeat same clowder");
@@ -105,20 +125,35 @@ const App = () => {
             catRefs.current[2]?.id.split("")
         );
         if (valid) {
+            console.log("level 3 valid", valid);
+            console.log("valid string", validString);
+
             const result =
-                checkIfArrayIsUnique(validString, validStrings[0]) &&
-                checkIfArrayIsUnique(validString, validStrings[1]);
+                checkIfCatsAreUnique(levelOneValidCatsArrayRef.current, [
+                    catRefs.current[0]?.id,
+                    catRefs.current[1]?.id,
+                    catRefs.current[2]?.id,
+                ]) &&
+                checkIfCatsAreUnique(levelTwoRef.current, [
+                    catRefs.current[0]?.id,
+                    catRefs.current[1]?.id,
+                    catRefs.current[2]?.id,
+                ]);
+
             if (result) {
-                levelThreeRef.current = [
+                levelThreeValidCatsArrayRef.current = [
                     catRefs.current[0],
                     catRefs.current[1],
                     catRefs.current[2],
                 ];
+                levelThreeRef.current = [
+                    catRefs.current[0]?.id,
+                    catRefs.current[1]?.id,
+                    catRefs.current[2]?.id,
+                ];
+                console.log("level three ref", levelThreeRef.current);
                 setStageThreeCleared(true);
                 stageRef.current = 4;
-                const newValidStrings = [...validStrings, validString];
-                setValidStrings(newValidStrings);
-                console.log("valid strings array", newValidStrings);
                 resetCatList();
             } else {
                 console.log("You cannot repeat same clowder");
@@ -135,18 +170,62 @@ const App = () => {
             catRefs.current[1]?.id.split(""),
             catRefs.current[2]?.id.split("")
         );
+        // if (valid) {
+        //     // const result =
+        //     //     checkIfArrayIsUnique(validString, validStrings[0]) &&
+        //     //     checkIfArrayIsUnique(validString, validStrings[1]) &&
+        //     //     checkIfArrayIsUnique(validString, validStrings[2]);
+        //     // if (result) {
+        //     //     levelFourRef.current = [catRefs.current[0], catRefs.current[1], catRefs.current[2]];
+        //     //     setStageFourCleared(true);
+        //     //     stageRef.current = "game over";
+        //     //     const newValidStrings = [...validStrings, validString];
+        //     //     setValidStrings(newValidStrings);
+        //     //     console.log("valid strings array", newValidStrings);
+        //     //     gameOver();
+        //     // } else {
+        //     //     console.log("You cannot repeat same clowder");
+        //     //     resetCatList();
+        //     // }
+        // } else {
+        //     handleFailedAttempt(valid);
+        // }
         if (valid) {
+            console.log("level 4 valid", valid);
+            console.log("valid string", validString);
+
             const result =
-                checkIfArrayIsUnique(validString, validStrings[0]) &&
-                checkIfArrayIsUnique(validString, validStrings[1]) &&
-                checkIfArrayIsUnique(validString, validStrings[2]);
+                checkIfCatsAreUnique(levelOneValidCatsArrayRef.current, [
+                    catRefs.current[0]?.id,
+                    catRefs.current[1]?.id,
+                    catRefs.current[2]?.id,
+                ]) &&
+                checkIfCatsAreUnique(levelTwoRef.current, [
+                    catRefs.current[0]?.id,
+                    catRefs.current[1]?.id,
+                    catRefs.current[2]?.id,
+                ]) &&
+                checkIfCatsAreUnique(levelThreeRef.current, [
+                    catRefs.current[0]?.id,
+                    catRefs.current[1]?.id,
+                    catRefs.current[2]?.id,
+                ]);
+
             if (result) {
-                levelFourRef.current = [catRefs.current[0], catRefs.current[1], catRefs.current[2]];
+                levelFourValidCatsArrayRef.current = [
+                    catRefs.current[0],
+                    catRefs.current[1],
+                    catRefs.current[2],
+                ];
+                levelFourRef.current = [
+                    catRefs.current[0]?.id,
+                    catRefs.current[1]?.id,
+                    catRefs.current[2]?.id,
+                ];
+                console.log("level four ref", levelFourRef.current);
                 setStageFourCleared(true);
+
                 stageRef.current = "game over";
-                const newValidStrings = [...validStrings, validString];
-                setValidStrings(newValidStrings);
-                console.log("valid strings array", newValidStrings);
                 gameOver();
             } else {
                 console.log("You cannot repeat same clowder");
@@ -253,7 +332,7 @@ const App = () => {
                             );
                         })}
                         {array2.map((_, index) => {
-                            const cat = levelTwoRef.current[index];
+                            const cat = levelTwoValidCatsArrayRef.current[index];
                             return (
                                 <div
                                     key={index}
@@ -269,7 +348,7 @@ const App = () => {
                             );
                         })}
                         {array3.map((_, index) => {
-                            const cat = levelThreeRef.current[index];
+                            const cat = levelThreeValidCatsArrayRef.current[index];
                             return (
                                 <div
                                     key={index}
@@ -286,7 +365,7 @@ const App = () => {
                             );
                         })}
                         {array4.map((_, index) => {
-                            const cat = levelFourRef.current[index];
+                            const cat = levelFourValidCatsArrayRef.current[index];
                             return (
                                 <div
                                     key={index}
