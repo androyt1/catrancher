@@ -1,24 +1,27 @@
-import React, { useState, useEffect, useRef } from "react";
-// import useCustomDataHook from "./hooks/useCustomData";
-// import Loading from "./components/Loading";
-// import ErrorComponent from "./components/Error";
-//import CatsContainer from "./components/CatsContainer";
-//import SortedCats from "./components/SortedCats";
-//new comment
+import React, { useState, useRef } from "react";
+import useCustomDataHook from "./hooks/useCustomData";
+import Loading from "./components/Loading";
+import ErrorComponent from "./components/Error";
+import CatsContainer from "./components/CatsContainer";
 
 import {
-    array1,
-    array2,
-    array3,
-    array4,
     compareCatsArrays,
     checkIfCatsAreUnique,
+    gameOver,
+    successMessage,
+    errorMessage,
+    duplicateClowderMessage,
+    lastSuccessMessage,
 } from "./utils/functions";
+import RanchersContainer from "./components/RanchersContainer";
+import ReStartButton from "./components/ReStartButton";
+import Title from "./components/Title";
 
 const App = () => {
     // CAN USE PREVIOUSLY USED CAT BUT NOT ALL THREE CATS
 
-    const [cats, setCats] = useState([]);
+    const { data, loading, error } = useCustomDataHook();
+
     const [selectedCats, setSelectedCats] = useState([]);
     const levelOneRef = useRef([]);
     const levelTwoRef = useRef([]);
@@ -35,11 +38,11 @@ const App = () => {
     const catRefs = useRef([]);
     const [selected, setSelected] = useState([]);
     const stageRef = useRef(1);
-
-    useEffect(() => {
-        const data = localStorage.getItem("cats");
-        setCats(JSON.parse(data));
-    }, []);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modelContent, setModelContent] = useState({
+        title: "",
+        content: "",
+    });
 
     const handleClick = (chosenCat) => {
         manageAddedCat(chosenCat);
@@ -55,46 +58,34 @@ const App = () => {
             gameOver();
         }
     };
+
     const stage1 = () => {
-        const { valid, validString } = compareCatsArrays(
-            catRefs.current[0]?.id,
-            catRefs.current[1]?.id,
-            catRefs.current[2]?.id
-        );
+        const { valid } = compareCats(catRefs.current);
 
         if (valid) {
             levelOneRef.current = catRefs.current;
             setStageOneCleared(true);
             stageRef.current = 2;
             resetCatList();
-            console.log("level 1 valid", valid);
-            console.log("valid strings", validString);
+            handleOpenModal(successMessage);
             levelOneValidCatsArrayRef.current = [
                 levelOneRef.current[0]?.id,
                 levelOneRef.current[1]?.id,
                 levelOneRef.current[2]?.id,
             ];
-            console.log("level one valid cats", levelOneValidCatsArrayRef.current);
         }
         handleFailedAttempt(valid);
     };
-    const stage2 = () => {
-        console.log("stage 2");
-        const { valid, validString } = compareCatsArrays(
-            catRefs.current[0]?.id.split(""),
-            catRefs.current[1]?.id.split(""),
-            catRefs.current[2]?.id.split("")
-        );
-        if (valid) {
-            console.log("level 2 valid", valid);
-            console.log("valid string", validString);
 
-            const result = checkIfCatsAreUnique(levelOneValidCatsArrayRef.current, [
+    const stage2 = () => {
+        const { valid } = compareCats(catRefs.current);
+        if (valid) {
+            const isUnique = checkIfCatsAreUnique(levelOneValidCatsArrayRef.current, [
                 catRefs.current[0]?.id,
                 catRefs.current[1]?.id,
                 catRefs.current[2]?.id,
             ]);
-            if (result) {
+            if (isUnique) {
                 levelTwoValidCatsArrayRef.current = [
                     catRefs.current[0],
                     catRefs.current[1],
@@ -105,30 +96,23 @@ const App = () => {
                     catRefs.current[1].id,
                     catRefs.current[2].id,
                 ];
-                console.log("level two ref", levelTwoRef.current);
                 setStageTwoCleared(true);
+                handleOpenModal(successMessage);
                 stageRef.current = 3;
                 resetCatList();
             } else {
-                console.log("You cannot repeat same clowder");
+                handleOpenModal(duplicateClowderMessage);
                 resetCatList();
             }
         } else {
             handleFailedAttempt(valid);
         }
     };
-    const stage3 = () => {
-        console.log("stage 3");
-        const { valid, validString } = compareCatsArrays(
-            catRefs.current[0]?.id.split(""),
-            catRefs.current[1]?.id.split(""),
-            catRefs.current[2]?.id.split("")
-        );
-        if (valid) {
-            console.log("level 3 valid", valid);
-            console.log("valid string", validString);
 
-            const result =
+    const stage3 = () => {
+        const { valid } = compareCats(catRefs.current);
+        if (valid) {
+            const isUnique =
                 checkIfCatsAreUnique(levelOneValidCatsArrayRef.current, [
                     catRefs.current[0]?.id,
                     catRefs.current[1]?.id,
@@ -140,7 +124,7 @@ const App = () => {
                     catRefs.current[2]?.id,
                 ]);
 
-            if (result) {
+            if (isUnique) {
                 levelThreeValidCatsArrayRef.current = [
                     catRefs.current[0],
                     catRefs.current[1],
@@ -151,50 +135,24 @@ const App = () => {
                     catRefs.current[1]?.id,
                     catRefs.current[2]?.id,
                 ];
-                console.log("level three ref", levelThreeRef.current);
+                handleOpenModal(successMessage);
                 setStageThreeCleared(true);
                 stageRef.current = 4;
                 resetCatList();
             } else {
-                console.log("You cannot repeat same clowder");
+                handleOpenModal(duplicateClowderMessage);
                 resetCatList();
             }
         } else {
             handleFailedAttempt(valid);
         }
     };
-    const stage4 = () => {
-        console.log("stage 4");
-        const { valid, validString } = compareCatsArrays(
-            catRefs.current[0]?.id.split(""),
-            catRefs.current[1]?.id.split(""),
-            catRefs.current[2]?.id.split("")
-        );
-        // if (valid) {
-        //     // const result =
-        //     //     checkIfArrayIsUnique(validString, validStrings[0]) &&
-        //     //     checkIfArrayIsUnique(validString, validStrings[1]) &&
-        //     //     checkIfArrayIsUnique(validString, validStrings[2]);
-        //     // if (result) {
-        //     //     levelFourRef.current = [catRefs.current[0], catRefs.current[1], catRefs.current[2]];
-        //     //     setStageFourCleared(true);
-        //     //     stageRef.current = "game over";
-        //     //     const newValidStrings = [...validStrings, validString];
-        //     //     setValidStrings(newValidStrings);
-        //     //     console.log("valid strings array", newValidStrings);
-        //     //     gameOver();
-        //     // } else {
-        //     //     console.log("You cannot repeat same clowder");
-        //     //     resetCatList();
-        //     // }
-        // } else {
-        //     handleFailedAttempt(valid);
-        // }
-        if (valid) {
-            console.log("level 4 valid", valid);
-            console.log("valid string", validString);
 
-            const result =
+    const stage4 = () => {
+        const { valid } = compareCats(catRefs.current);
+
+        if (valid) {
+            const isUnique =
                 checkIfCatsAreUnique(levelOneValidCatsArrayRef.current, [
                     catRefs.current[0]?.id,
                     catRefs.current[1]?.id,
@@ -211,7 +169,7 @@ const App = () => {
                     catRefs.current[2]?.id,
                 ]);
 
-            if (result) {
+            if (isUnique) {
                 levelFourValidCatsArrayRef.current = [
                     catRefs.current[0],
                     catRefs.current[1],
@@ -222,13 +180,13 @@ const App = () => {
                     catRefs.current[1]?.id,
                     catRefs.current[2]?.id,
                 ];
-                console.log("level four ref", levelFourRef.current);
-                setStageFourCleared(true);
+                handleOpenModal(lastSuccessMessage);
 
+                setStageFourCleared(true);
                 stageRef.current = "game over";
                 gameOver();
             } else {
-                console.log("You cannot repeat same clowder");
+                handleOpenModal(duplicateClowderMessage);
                 resetCatList();
             }
         } else {
@@ -236,26 +194,27 @@ const App = () => {
         }
     };
 
-    const gameOver = () => {
-        console.log("game over!");
+    const compareCats = (cats) => {
+        const catIds = cats.map((cat) => cat?.id.split(""));
+        return compareCatsArrays(...catIds);
     };
 
-    const manageAddedCat = (pussyCat) => {
-        manageSelectionHighlight(pussyCat);
-        const itExist = selectedCats.find((cat) => cat?.id === pussyCat?.id);
+    const manageAddedCat = (newCat) => {
+        manageSelectionHighlight(newCat);
+        const itExist = selectedCats.find((cat) => cat?.id === newCat?.id);
         const listOfCats = itExist
-            ? selectedCats.filter((cat) => cat.id !== pussyCat?.id)
-            : [...selectedCats, pussyCat];
+            ? selectedCats.filter((cat) => cat.id !== newCat?.id)
+            : [...selectedCats, newCat];
 
         setSelectedCats(listOfCats);
         catRefs.current = listOfCats;
     };
 
-    const manageSelectionHighlight = (pussyCat) => {
-        const alreadySelected = selected.find((cat) => cat?.id === pussyCat?.id);
+    const manageSelectionHighlight = (addedCat) => {
+        const alreadySelected = selected.find((cat) => cat?.id === addedCat?.id);
         const listOfSelecteds = alreadySelected
-            ? selected.filter((cat) => cat?.id !== pussyCat?.id)
-            : [...selected, pussyCat];
+            ? selected.filter((cat) => cat?.id !== addedCat?.id)
+            : [...selected, addedCat];
 
         const cycled = listOfSelecteds.length % 3 === 0 ? [] : listOfSelecteds;
         setSelected(cycled);
@@ -263,7 +222,7 @@ const App = () => {
 
     const handleFailedAttempt = (result) => {
         if (catRefs.current.length === 3 && result === false) {
-            console.log("Aww these cats do not get along");
+            handleOpenModal(errorMessage);
             resetCatList();
         }
     };
@@ -287,109 +246,43 @@ const App = () => {
         stageRef.current = 1;
     };
 
+    // modal
+    const handleOpenModal = (msg) => {
+        setModalOpen(true);
+        setModelContent(msg);
+    };
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+    };
+
+    if (loading) return <Loading />;
+    if (error) return <ErrorComponent />;
+
     return (
         <div className='w-full flex flex-col'>
-            <div className='w-full flex justify-center items-center mt-10 mb-4'>
-                <h1 className='text-6xl font-semibold'>CatRanchers</h1>
+            <Title />
+            <div className='w-full grid grid-cols-2 gap-12'>
+                <CatsContainer
+                    cats={data}
+                    selected={selected}
+                    handleClick={handleClick}
+                    modalOpen={modalOpen}
+                    handleCloseModal={handleCloseModal}
+                    modelContent={modelContent}
+                />
+                <RanchersContainer
+                    levelOneRef={levelOneRef}
+                    stageOneCleared={stageOneCleared}
+                    levelTwoValidCatsArrayRef={levelTwoValidCatsArrayRef}
+                    stageTwoCleared={stageTwoCleared}
+                    levelThreeValidCatsArrayRef={levelThreeValidCatsArrayRef}
+                    stageThreeCleared={stageThreeCleared}
+                    levelFourValidCatsArrayRef={levelFourValidCatsArrayRef}
+                    stageFourCleared={stageFourCleared}
+                />
             </div>
-            <div className='w-full grid grid-cols-2'>
-                <div className='  grid grid-cols-4 grid-flow-row auto-rows-max mx-auto'>
-                    {cats?.map((cat) => {
-                        return (
-                            <button
-                                key={cat?.id}
-                                className={`h-[120px] flex justify-center items-center ${
-                                    selected.find((pussy) => pussy?.id === cat?.id)
-                                        ? "bg-slate-400"
-                                        : "bg-white"
-                                }`}
-                                onClick={() => handleClick(cat)}>
-                                <img
-                                    src={cat?.imageUrl}
-                                    alt='Cat'
-                                    className='w-full h-full object-contain'
-                                />
-                            </button>
-                        );
-                    })}
-                </div>
-                <div className='w-full flex justify-center items-center'>
-                    <div className='w-1/3 grid grid-cols-3 grid-flow-row auto-rows-max'>
-                        {array1?.map((_, index) => {
-                            const cat = levelOneRef.current[index];
-                            return (
-                                <div
-                                    key={index}
-                                    className='border border-sky-400 h-[60px]  flex justify-center items-center'>
-                                    {stageOneCleared && (
-                                        <img
-                                            src={cat?.imageUrl}
-                                            alt=''
-                                            className='w-full h-full object-contain'
-                                        />
-                                    )}
-                                </div>
-                            );
-                        })}
-                        {array2.map((_, index) => {
-                            const cat = levelTwoValidCatsArrayRef.current[index];
-                            return (
-                                <div
-                                    key={index}
-                                    className='border border-sky-400 h-[60px]  flex justify-center items-center'>
-                                    {stageTwoCleared && (
-                                        <img
-                                            src={cat?.imageUrl}
-                                            alt=''
-                                            className='w-full h-full object-contain'
-                                        />
-                                    )}
-                                </div>
-                            );
-                        })}
-                        {array3.map((_, index) => {
-                            const cat = levelThreeValidCatsArrayRef.current[index];
-                            return (
-                                <div
-                                    key={index}
-                                    className={`border border-sky-400 h-[60px]  flex justify-center items-center 
-                                    `}>
-                                    {stageThreeCleared && (
-                                        <img
-                                            src={cat?.imageUrl}
-                                            alt=''
-                                            className='w-full h-full object-contain'
-                                        />
-                                    )}
-                                </div>
-                            );
-                        })}
-                        {array4.map((_, index) => {
-                            const cat = levelFourValidCatsArrayRef.current[index];
-                            return (
-                                <div
-                                    key={index}
-                                    className='border border-sky-400 h-[60px]  flex justify-center items-center'>
-                                    {stageFourCleared && (
-                                        <img
-                                            src={cat?.imageUrl}
-                                            alt=''
-                                            className='w-full h-full object-contain'
-                                        />
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            </div>
-            <div className='w-1/2 mx-auto flex justify-center items-center mt-8'>
-                <button
-                    className='bg-slate-800 text-white font-semibold px-8 py-2 rounded-full'
-                    onClick={reset}>
-                    Reset
-                </button>
-            </div>
+            <ReStartButton reset={reset} />
         </div>
     );
 };
